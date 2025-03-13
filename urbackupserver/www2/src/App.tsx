@@ -14,6 +14,7 @@ import {
   Spinner,
   Toaster,
   mergeClasses,
+  Link,
 } from "@fluentui/react-components";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useStackStyles } from "./components/StackStyles";
@@ -25,9 +26,11 @@ import { BackupsPage } from "./pages/Backups";
 import { ClientBackupsTable } from "./features/backups/ClientBackupsTable";
 import { BackupsTable } from "./features/backups/BackupsTable";
 import { BackupContentTable } from "./features/backups/BackupContentTable";
-import BackupErrorPage from "./features/backups/BackupsError";
+import { ErrorPage } from "./components/ErrorPage";
 import { StatisticsPage } from "./pages/Statistics";
 import { LogsPage } from "./pages/Logs";
+import { ClientLogs } from "./features/logs/ClientLogs";
+import { ClientLog } from "./features/logs/ClientLog";
 import "./css/global.css";
 
 const initialDark =
@@ -131,7 +134,9 @@ export const router = createHashRouter([
       await jumpToLoginPageIfNeccessary();
       return null;
     },
-    errorElement: <BackupErrorPage />,
+    errorElement: (
+      <ErrorPage returnToLink={<Link href="/#/backups">Backups</Link>} />
+    ),
     children: [
       {
         index: true,
@@ -164,6 +169,17 @@ export const router = createHashRouter([
       await jumpToLoginPageIfNeccessary();
       return null;
     },
+    errorElement: <ErrorPage returnToLink={<Link href="/#/logs">Logs</Link>} />,
+    children: [
+      {
+        index: true,
+        element: <ClientLogs />,
+      },
+      {
+        path: ":logId",
+        element: <ClientLog />,
+      },
+    ],
   },
 ]);
 
