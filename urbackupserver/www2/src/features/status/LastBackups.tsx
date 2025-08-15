@@ -1,9 +1,7 @@
 import {
   Field,
-  makeStyles,
   ProgressBar,
   TableCellLayout,
-  tokens,
 } from "@fluentui/react-components";
 import {
   CheckmarkCircleFilled,
@@ -20,8 +18,7 @@ import { useBackupResult } from "./BackupResultContext";
 import { formatDatetime } from "../../utils/format";
 
 export function LastFileBackup(item: StatusClientItem) {
-  const formattedLastBackup =
-    item.lastbackup === 0 ? "Never" : formatDatetime(item.lastbackup);
+  const formattedLastBackup = formatLastBackup(item.lastbackup);
 
   const fileBackupProcesses = item.processes.filter(
     (p) =>
@@ -46,10 +43,7 @@ export function LastFileBackup(item: StatusClientItem) {
 }
 
 export function LastImageBackup(item: StatusClientItem) {
-  const formattedLastBackup =
-    item.lastbackup_image === 0
-      ? "Never"
-      : formatDatetime(item.lastbackup_image);
+  const formattedLastBackup = formatLastBackup(item.lastbackup_image);
 
   const imageBackupProcesses = item.processes.filter(
     (p) =>
@@ -73,20 +67,6 @@ export function LastImageBackup(item: StatusClientItem) {
   );
 }
 
-const useBackupResultsStyles = makeStyles({
-  root: {
-    display: "flex",
-    alignItems: "center",
-    gap: tokens.spacingHorizontalXS,
-  },
-  success: {
-    color: tokens.colorStatusSuccessForeground1,
-  },
-  error: {
-    color: tokens.colorStatusDangerForeground1,
-  },
-});
-
 function ProcessResult({
   id,
   processes,
@@ -96,8 +76,6 @@ function ProcessResult({
   processes: ClientProcessItem[];
   validBackups: StartType[];
 }) {
-  const classes = useBackupResultsStyles();
-
   const { getResultById } = useBackupResult();
 
   const result = getResultById(id);
@@ -109,16 +87,16 @@ function ProcessResult({
   ) {
     if (!result.start_ok) {
       return (
-        <div className={classes.root}>
-          <DismissCircleFilled className={classes.error} />
+        <div className="cluster gutter-xs">
+          <DismissCircleFilled className="icon fg-color-error" />
           Starting backup failed
         </div>
       );
     }
 
     return (
-      <div className={classes.root}>
-        <CheckmarkCircleFilled className={classes.success} />
+      <div className="cluster gutter-xs">
+        <CheckmarkCircleFilled className="icon fg-color-success" />
         Queued backup
       </div>
     );
@@ -135,4 +113,16 @@ function ProcessResult({
       </Field>
     );
   });
+}
+
+function formatLastBackup(
+  lastBackup:
+    | StatusClientItem["lastbackup"]
+    | StatusClientItem["lastbackup_image"],
+) {
+  if (lastBackup === 0 || lastBackup === "-") {
+    return "Never";
+  }
+
+  return formatDatetime(lastBackup);
 }

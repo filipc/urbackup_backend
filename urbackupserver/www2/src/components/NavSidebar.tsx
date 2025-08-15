@@ -1,5 +1,5 @@
-import { Pages, router, state } from "../App";
-import { useSnapshot } from "valtio";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   SelectTabData,
   SelectTabEvent,
@@ -7,16 +7,25 @@ import {
   TabList,
 } from "@fluentui/react-components";
 
+import { Pages } from "../App";
+
 export const NavSidebar = () => {
-  const snap = useSnapshot(state);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const [selectedValue, setSelectedValue] = useState(() =>
+    getInitialTab(pathname),
+  );
 
   const onTabSelect = async (event: SelectTabEvent, data: SelectTabData) => {
+    setSelectedValue(data.value as Pages);
+
     const nt = `/${data.value}`;
-    await router.navigate(nt);
+    await navigate(nt);
   };
 
   return (
-    <TabList selectedValue={snap.activePage} vertical onTabSelect={onTabSelect}>
+    <TabList selectedValue={selectedValue} vertical onTabSelect={onTabSelect}>
       <Tab value={Pages.Status}>Status</Tab>
       <Tab value={Pages.Activities}>Activities</Tab>
       <Tab value={Pages.Backups}>Backups</Tab>
@@ -28,3 +37,8 @@ export const NavSidebar = () => {
 };
 
 export default NavSidebar;
+
+function getInitialTab(pathname: string) {
+  const page = pathname.split("/").filter((p) => p.length)[0] ?? Pages.Status;
+  return page;
+}

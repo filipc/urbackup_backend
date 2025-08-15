@@ -1,5 +1,6 @@
 import { PBKDF2, MD5, algo } from "crypto-js";
 import testoutputProgress from "./TestoutputProgress.json";
+import { formatUserRights } from "../utils/formatUserRights";
 
 interface SaltResult {
   salt: string;
@@ -9,7 +10,7 @@ interface SaltResult {
   ses: string | undefined;
 }
 
-interface LoginResult {
+export interface LoginResult {
   upgrading_database: boolean | undefined;
   curr_db_version: number | undefined;
   target_db_version: number | undefined;
@@ -571,11 +572,11 @@ export enum AddUserResult {
 
 function randomString()
 {
-	var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-	var string_length = 50;
-	var randomstring = '';
+	const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+	const string_length = 50;
+	let randomstring = '';
 	
-	var array = new Uint32Array(string_length);
+	const array = new Uint32Array(string_length);
 	if(window.crypto && window.crypto.getRandomValues(array))
 	{
 		for (var i=0; i<string_length; i++) {
@@ -585,7 +586,7 @@ function randomString()
 	}
 	
 	for (var i=0; i<string_length; i++) {
-		var rnum = Math.floor(Math.random() * chars.length);
+		const rnum = Math.floor(Math.random() * chars.length);
 		randomstring += chars.substring(rnum,rnum+1);
 	}
 	return randomstring;
@@ -659,6 +660,7 @@ class UrBackupServer {
         { username: username, password: password, plainpw: "1" },
         "login",
       );
+      console.log(resp)
       if (typeof resp.error != "undefined" && resp.error == 2) {
         throw new UsernameOrPasswordWrongError();
       }
@@ -1035,7 +1037,11 @@ class UrBackupServer {
   }
 
   // Save general server settings
-  saveGeneralSettings = async (settings: GeneralSettings) => {
+  saveGeneralSettings = async (
+    settings: Partial<GeneralSettings> & {
+      settings: GeneralSettings['settings']
+    },
+  ) => {
     const params : Record<string, string> = { "sa": "general_save" };
     for (const [key, value] of Object.entries(settings.settings)) {
       if (typeof value == "object")
@@ -1100,17 +1106,7 @@ class UrBackupServer {
     const salt=randomString();	
 	  const password_md5=MD5(salt+password).toString();
     const params: Record<string, string> = { sa: "useradd", name: name, pwmd5: password_md5, salt: salt };
-    let i = 0;
-    let idx = "";
-    for (const right of rights) {
-      params[i+"_domain"] = right.domain;
-      params[i+"_right"] = right.right;
-      i++;
-      if(idx.length>0)
-        idx += ",";
-      idx += "" + i;
-    }
-    params["idx"] = idx;
+    params['rights'] = formatUserRights(rights)   
     const resp = await this.fetchData(params, "settings");
     if (typeof resp.add_ok != "undefined" && resp.add_ok) {
       return;
