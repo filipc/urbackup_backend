@@ -2,7 +2,7 @@
   --border-color: var(--colorNeutralStroke2);
   --flow-space: 2em;
 
-  width: 74ch;
+  width: var(--container-width, min(74ch, 100%));
   margin: 0 auto;
   padding-block-end: --spacing;
 }
@@ -32,4 +32,9 @@
 
 .form > :has(label):not(:last-of-type) {
   border-block-end: 1px solid var(--border-color);
+}
+
+.form > [type="submit"] {
+  display: block;
+  margin-block-start: var(--spacingXL);
 }
